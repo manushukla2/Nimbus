@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: nimbus-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./infrastructure/postgres/schemas/auth.sql:/docker-entrypoint-initdb.d/02-auth.sql
+      - ./infrastructure/postgres/schemas/workspace.sql:/docker-entrypoint-initdb.d/03-workspace.sql
+      - ./infrastructure/postgres/schemas/project.sql:/docker-entrypoint-initdb.d/04-project.sql
+      - ./infrastructure/postgres/schemas/task.sql:/docker-entrypoint-initdb.d/05-task.sql
+      - ./infrastructure/postgres/schemas/sprint.sql:/docker-entrypoint-initdb.d/06-sprint.sql
+      - ./infrastructure/postgres/schemas/roadmap.sql:/docker-entrypoint-initdb.d/07-roadmap.sql
+      - ./infrastructure/postgres/schemas/document.sql:/docker-entrypoint-initdb.d/08-document.sql
+      - ./infrastructure/postgres/schemas/analytics.sql:/docker-entrypoint-initdb.d/09-analytics.sql
+      - ./infrastructure/postgres/schemas/notification.sql:/docker-entrypoint-initdb.d/10-notification.sql
+      - ./infrastructure/postgres/schemas/ai.sql:/docker-entrypoint-initdb.d/11-ai.sql
+    networks:
+      - nimbus-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: nimbus-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nimbus-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  nimbus-network:
+    driver: bridge
