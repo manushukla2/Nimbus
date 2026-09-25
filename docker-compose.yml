@@ -1,4 +1,15 @@
+﻿version: "3.9"
+
+networks:
+  nimbus-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
 services:
+
   postgres:
     image: pgvector/pgvector:pg16
     container_name: nimbus-postgres
@@ -8,7 +19,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5434:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
@@ -34,8 +45,9 @@ services:
     image: redis:7-alpine
     container_name: nimbus-redis
     restart: unless-stopped
+    command: redis-server --appendonly yes
     ports:
-      - "6380:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -46,10 +58,28 @@ services:
       timeout: 5s
       retries: 5
 
-volumes:
-  postgres_data:
-  redis_data:
-
-networks:
-  nimbus-network:
-    driver: bridge
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: nimbus-auth
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=auth-service
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
+      - JWT_REFRESH_TOKEN_EXPIRE_DAYS=${JWT_REFRESH_TOKEN_EXPIRE_DAYS}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - nimbus-network
