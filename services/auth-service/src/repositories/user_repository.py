@@ -49,6 +49,13 @@ class UserRepository:
             .values(last_login_at=datetime.now(timezone.utc))
         )
 
+    async def update_password(self, user_id: uuid.UUID, hashed_password: str) -> None:
+        await self.db.execute(
+            update(User)
+            .where(User.id == user_id)
+            .values(hashed_password=hashed_password)
+        )
+
     async def update_profile(self, user_id: uuid.UUID, **kwargs) -> Optional[User]:
         await self.db.execute(
             update(User)
