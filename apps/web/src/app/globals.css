@@ -27,23 +27,35 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
 html { -webkit-font-smoothing: antialiased; }
+
 body {
   background-color: var(--background);
   color: var(--text-primary);
-  font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Arial Rounded MT Bold", "Arial Rounded", "Nunito", "Varela Round", Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
 }
+
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 99px; }
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
 }
+
 .badge-healthy { background: var(--success-light); color: var(--success); }
 .badge-at-risk { background: var(--warning-light); color: var(--warning); }
 .badge-blocked { background: var(--danger-light); color: var(--danger); }
+
+/* Make form controls use the same rounded font as the rest of the app */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+}
