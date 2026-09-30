@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.session import get_db
 from src.services.auth_service import AuthService
@@ -9,7 +9,7 @@ from src.schemas.auth import (
 )
 from src.api.deps import get_current_user
 from src.models.user import User
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
@@ -20,12 +20,12 @@ class ForgotPasswordRequest(BaseModel):
 
 class VerifyOTPRequest(BaseModel):
     email: EmailStr
-    otp: str
+    otp: str = Field(..., min_length=6, max_length=6, pattern=r"^\d{6}$")
 
 
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
-    new_password: str
+    new_password: str = Field(..., min_length=8, max_length=100)
 
 
 @router.post('/register', response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
